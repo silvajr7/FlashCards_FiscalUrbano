@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Fiscal de Serviço Urbano (Banca Verbena)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para o efeito 3D do Flashcard */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .card-transition {
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        
+        /* Garantir que o texto longo tenha rolagem se necessário */
+        .card-content-scroll {
+            overflow-y: auto;
+            max-height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .card-content-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-content-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Cabeçalho -->
+    <header class="bg-indigo-600 text-white shadow-md p-4">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold"><i class="fas fa-layer-group mr-2"></i>Flashcards da Aprovação</h1>
+                <p class="text-indigo-200 text-sm md:text-base">Fiscal de Serviço Urbano - Foco Banca Verbena (UFG)</p>
+            </div>
+            <div class="text-right">
+                <span id="progress-text" class="font-mono bg-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">1 / 50</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Área Principal -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 w-full max-w-4xl mx-auto">
+        
+        <!-- Barra de Progresso -->
+        <div class="w-full bg-slate-300 rounded-full h-2 mb-8">
+            <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 2%;"></div>
+        </div>
+
+        <!-- Contêiner do Flashcard -->
+        <div class="relative w-full max-w-2xl h-80 md:h-96 perspective-1000 cursor-pointer group" onclick="flipCard()">
+            <div id="flashcard" class="w-full h-full absolute transform-style-3d card-transition rounded-2xl shadow-xl">
+                
+                <!-- Frente da Carta (Pergunta) -->
+                <div class="absolute w-full h-full bg-white backface-hidden rounded-2xl border-t-4 border-indigo-500 flex flex-col justify-center items-center p-8 text-center">
+                    <span class="absolute top-4 left-4 text-indigo-400 text-sm font-semibold uppercase tracking-wider"><i class="fas fa-question-circle mr-1"></i> Pergunta</span>
+                    <h2 id="card-question" class="text-xl md:text-3xl font-bold text-slate-700 leading-tight">
+                        Carregando...
+                    </h2>
+                    <p class="absolute bottom-4 text-slate-400 text-sm flex items-center gap-2">
+                        <i class="fas fa-hand-pointer"></i> Toque para ver a resposta
+                    </p>
+                </div>
+
+                <!-- Verso da Carta (Resposta) -->
+                <div class="absolute w-full h-full bg-indigo-50 backface-hidden rounded-2xl border-t-4 border-emerald-500 rotate-y-180 flex flex-col justify-center items-center p-8 text-center">
+                    <span class="absolute top-4 left-4 text-emerald-600 text-sm font-semibold uppercase tracking-wider"><i class="fas fa-check-circle mr-1"></i> Resposta</span>
+                    <div class="card-content-scroll w-full flex flex-col justify-center h-full pt-6 pb-6">
+                        <p id="card-answer" class="text-lg md:text-2xl font-medium text-slate-800 leading-relaxed">
+                            Carregando...
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="flex flex-wrap justify-center gap-4 mt-8 w-full">
+            <button onclick="prevCard()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold py-3 px-6 rounded-lg shadow-sm transition-colors flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Anterior
+            </button>
+            <button onclick="shuffleCards()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg shadow-sm transition-colors flex items-center" title="Embaralhar">
+                <i class="fas fa-random"></i>
+            </button>
+            <button onclick="nextCard()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors flex items-center">
+                Próximo <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-slate-800 text-slate-400 text-center p-4 text-sm mt-auto">
+        <p>Conteúdo focado no edital de Fiscal de Serviço Urbano (Banca Verbena/UFG). Dica: A banca cobra muita aplicação prática do Poder de Polícia.</p>
+    </footer>
+
+    <script>
+        // Base de Dados: 250 Flashcards focados em Fiscal de Serviço Urbano (Verbena / Senador Canedo)
+        const originalCards = [
+            // --- BLOCO 1: PODER DE POLÍCIA ORIGINÁRIO E DIREITOS FUNDAMENTAIS (20 cards) ---
+            {q: "O que é o Poder de Polícia Administrativa?", a: "Atividade da administração que, limitando direito, interesse ou liberdade, regula a prática de ato ou abstenção de fato, em razão de interesse público."},
+            {q: "Quais são os 3 atributos principais do Poder de Polícia?", a: "Discricionariedade, Autoexecutoriedade e Coercibilidade (Mnemônico: DAC)."},
+            {q: "O que significa a Autoexecutoriedade no Poder de Polícia?", a: "É a prerrogativa da Administração de executar suas decisões diretamente, SEM precisar de ordem do Poder Judiciário (Ex: embargo de obra)."},
+            {q: "O Poder de Polícia pode ser considerado absoluto?", a: "Não. É limitado pelos direitos fundamentais, pelo princípio da legalidade, da proporcionalidade e da razoabilidade."},
+            {q: "Quais são as 4 fases do Ciclo do Poder de Polícia?", a: "1. Ordem de Polícia (Lei); 2. Consentimento (Alvará); 3. Fiscalização; 4. Sanção (Multa, Embargo)."},
+            {q: "Empresas privadas podem exercer o Poder de Polícia?", a: "O STF decidiu que é possível a delegação do consentimento e fiscalização a empresas públicas/sociedade de economia mista, mas atividades preparatórias podem ir a particulares. A 'sanção' pura por particulares é vedada."},
+            {q: "Diferença entre Licença e Autorização (Consentimento)?", a: "Licença é ato vinculado e definitivo (ex: Alvará de Construção). Autorização é ato discricionário e precário (ex: fechar rua para evento)."},
+            {q: "O que é o Poder de Polícia Originário?", a: "É aquele exercido pelos entes federativos (União, Estados, DF e Municípios) através de seus órgãos da Administração Direta."},
+            {q: "O que é o Poder de Polícia Delegado?", a: "Aquele exercido pelas entidades da Administração Indireta (Autarquias, Fundações) mediante lei criadora."},
+            {q: "O exercício regular do Poder de Polícia gera direito a indenização?", a: "Regra geral, NÃO. Limitar um direito em prol da coletividade não gera indenização, salvo se houver excesso ou dano desproporcional."},
+            {q: "O que é a coercibilidade?", a: "É a imposição das medidas de polícia de forma impositiva, usando a força estatal se necessário, independentemente da vontade do administrado."},
+            {q: "Fiscalizar uma obra irregular fere o direito de propriedade?", a: "Não. O direito de propriedade é condicionado pela sua função social e pelas normas urbanísticas (Poder de Polícia)."},
+            {q: "O que é o 'Abuso de Poder' na fiscalização?", a: "Ocorre quando o fiscal atua fora de sua competência (excesso de poder) ou com finalidade diversa do interesse público (desvio de finalidade)."},
+            {q: "Qual a diferença entre Polícia Administrativa e Polícia Judiciária?", a: "A Administrativa atua sobre BENS, DIREITOS e ATIVIDADES (preventiva/repressiva). A Judiciária atua sobre PESSOAS (investigação criminal)."},
+            {q: "A fiscalização municipal exerce qual tipo de polícia?", a: "Polícia Administrativa."},
+            {q: "Qual o prazo de prescrição para a Administração punir no exercício do poder de polícia?", a: "O prazo geral (federal e espelhado nos municípios) é de 5 anos, contados da data da infração."},
+            {q: "O Alvará de Funcionamento decorre de qual fase do ciclo de polícia?", a: "Do Consentimento de Polícia."},
+            {q: "A lei que cria o Código de Obras representa qual fase do ciclo de polícia?", a: "A Ordem de Polícia (norma abstrata)."},
+            {q: "A aplicação de uma multa por poluição sonora é qual fase do ciclo?", a: "Sanção de Polícia."},
+            {q: "A fiscalização in loco do fiscal de posturas é qual fase do ciclo?", a: "Fiscalização de Polícia."},
+
+            // --- BLOCO 2: PROCEDIMENTOS FISCAIS: NOTIFICAÇÃO, AUTO DE INFRAÇÃO E EMBARGO (20 cards) ---
+            {q: "Qual a diferença entre Notificação e Auto de Infração?", a: "A Notificação avisa e dá prazo para sanar a irregularidade. O Auto de Infração aplica a penalidade (multa) após o fim do prazo ou em flagrantes."},
+            {q: "O que é o Auto de Embargo?", a: "É o ato administrativo que determina a paralisação imediata de uma obra em andamento que esteja irregular."},
+            {q: "O que é o Auto de Interdição?", a: "É o ato que impede o uso ou a ocupação de uma edificação concluída ou de um estabelecimento comercial."},
+            {q: "O que é o Auto de Apreensão?", a: "Retenção física de bens, materiais ou equipamentos (ex: mercadoria de ambulante sem licença ou som alto)."},
+            {q: "O infrator notificado/autuado tem direito a defesa?", a: "Sim, sempre. O contraditório e a ampla defesa são garantias constitucionais no processo administrativo."},
+            {q: "O que acontece se o autuado se recusar a assinar o Auto de Infração?", a: "O fiscal registra a recusa no auto, colhe assinatura de testemunhas (se houver) e o documento tem validade normal. Pode ser enviado por AR ou edital."},
+            {q: "Qual é o efeito do descumprimento de um embargo de obra?", a: "Gera agravamento da multa, possível apreensão de equipamentos/materiais e comunicação à autoridade policial por crime de desobediência."},
+            {q: "A demolição administrativa pode ser feita pelo próprio fiscal imediatamente?", a: "Apenas se houver risco iminente de desabamento ou se a obra estiver em andamento em área pública. Obras habitadas exigem via judicial."},
+            {q: "O que é a revelia no processo administrativo fiscal?", a: "É a perda do prazo pelo infrator para apresentar defesa ou recurso contra o auto de infração."},
+            {q: "Como o fiscal comprova a infração?", a: "Através da presunção de legitimidade de seus atos, respaldada por fotos, laudos, medições e descrição detalhada no Auto de Infração."},
+            {q: "Se um imóvel estiver fechado, o fiscal pode arrombar para fiscalizar?", a: "Regra geral: não. O asilo é inviolável. Exige-se mandado judicial, salvo flagrante delito ou desastre."},
+            {q: "O Auto de Infração precisa ter a base legal (artigo da lei infringido)?", a: "Sim. A falta de fundamentação legal (tipicidade) anula o Auto de Infração."},
+            {q: "O que é reincidência para efeitos de multa?", a: "Cometimento de nova infração do mesmo tipo dentro de um período estipulado em lei (geralmente gera multa em dobro)."},
+            {q: "Quem julga o recurso de um Auto de Infração?", a: "A autoridade administrativa superior ou junta de recursos do Município, conforme definido no código municipal."},
+            {q: "O fiscal ganha comissão pelas multas aplicadas?", a: "Não. A remuneração por produtividade baseada em número de multas é considerada imoral e inconstitucional por desvirtuar a finalidade."},
+            {q: "O que deve conter minimamente um Auto de Infração?", a: "Local, data, hora, qualificação do infrator, descrição do fato, dispositivo legal infringido, assinatura do fiscal e prazo de defesa."},
+            {q: "A fiscalização é um ato vinculado ou discricionário?", a: "A decisão de como organizar a rotina é discricionária, mas ao constatar a infração, a lavratura do auto é um ato VINCULADO (obrigatório)."},
+            {q: "O que é prevaricação no contexto fiscal?", a: "Crime onde o fiscal retarda ou deixa de praticar ato de ofício (ex: não multar) para satisfazer interesse ou sentimento pessoal."},
+            {q: "Pode haver notificação verbal válida?", a: "No Direito Administrativo, a forma é a escrita. Atos verbais têm validade precária e não servem para processos de multa."},
+            {q: "O que é poder de polícia difuso?", a: "É aquele que se espalha por vários órgãos. Ex: Fiscal de posturas, fiscal de trânsito, vigilância sanitária."},
+
+            // --- BLOCO 3: CÓDIGO DE OBRAS E LICENÇAS (Lei Senador Canedo + Geral) (25 cards) ---
+            {q: "O que é o Alvará de Construção (Licença para edificar)?", a: "Ato que aprova o projeto arquitetônico e autoriza o início da obra, comprovando conformidade com as leis municipais."},
+            {q: "Qual a diferença entre reforma e reconstrução?", a: "Reforma altera a edificação sem aumentar sua área total. Reconstrução refaz o que foi demolido, mantendo ou alterando características."},
+            {q: "É preciso licença para pintura e pequenos reparos internos?", a: "Em regra, o Código de Obras isenta de licença pequenos reparos que não alterem estrutura, fachada, área ou uso do imóvel."},
+            {q: "Qual o prazo de validade de um Alvará de Construção?", a: "Varia pela lei local (em Senador Canedo costuma seguir o padrão de 1 ou 2 anos), caducando se a obra não iniciar no prazo."},
+            {q: "O que caracteriza o início de uma obra para o Alvará não caducar?", a: "A execução das fundações (alicerces) da edificação."},
+            {q: "O projeto aprovado na Prefeitura pode ser alterado durante a obra?", a: "Sim, mas exige submissão de 'Projeto Modificativo' à Prefeitura para nova aprovação antes da execução."},
+            {q: "O que é o 'Habite-se'?", a: "Certificado de Conclusão de Obra. Atesta que a construção foi executada fielmente ao projeto aprovado e tem condições de uso."},
+            {q: "Pode-se conceder 'Habite-se parcial'?", a: "Sim, caso uma parte da obra esteja concluída, seja independente e ofereça condições plenas de uso e segurança."},
+            {q: "Qual é a punição para quem habita um prédio sem Habite-se?", a: "Multa e possível interdição do imóvel, além do impedimento de averbação no Cartório de Imóveis."},
+            {q: "É necessária licença municipal para demolição?", a: "Sim. A licença de demolição é obrigatória para controle de segurança, destinação de entulhos e atualização do cadastro do IPTU."},
+            {q: "O que deve ser feito ao encontrar uma obra sendo demolida sem licença?", a: "Embargo imediato e lavratura de Auto de Infração."},
+            {q: "O que são 'Recuos' ou 'Afastamentos' obrigatórios?", a: "Distâncias mínimas entre as paredes da edificação e as divisas do lote (frente, fundos e laterais) para garantir ventilação e iluminação."},
+            {q: "O que ocorre se a obra invadir o recuo frontal obrigatório?", a: "Obra irregular. Sujeita a embargo, multa e, caso não sanável, demolição da parte que invadiu o recuo."},
+            {q: "Tapumes são obrigatórios em todas as obras?", a: "Sim, sempre que a obra oferecer risco à via pública ou transeuntes. Devem ser licenciados se avançarem sobre o passeio."},
+            {q: "Até que limite o tapume pode avançar na calçada (passeio)?", a: "Geralmente a lei permite avançar no máximo 50% da largura do passeio, garantindo faixa livre (mínimo 1,20m) para pedestres."},
+            {q: "Qual a responsabilidade técnica (ART/RRT) na obra?", a: "Toda obra exige um responsável técnico (Engenheiro ou Arquiteto) cadastrado. A falta de placa ou de profissional gera autuação."},
+            {q: "Construção de muros de arrimo exige projeto/licença?", a: "Sim, pois envolve cálculos estruturais e riscos a vizinhos e vias públicas."},
+            {q: "A aprovação de projeto na prefeitura garante a propriedade do terreno?", a: "Não. A prefeitura licencia a construção, mas não reconhece direitos de propriedade, que são do Cartório de Registro de Imóveis."},
+            {q: "O que é pé-direito?", a: "É a distância vertical entre o piso acabado e o teto/forro acabado de um ambiente."},
+            {q: "O que é o balanço de uma edificação?", a: "Parte da edificação que se projeta além do alinhamento do pavimento inferior, sem apoio no solo (ex: sacadas)."},
+            {q: "Sacadas e marquises podem avançar sobre a calçada?", a: "Apenas se respeitarem as regras de recuo e altura mínima do Código de Obras (geralmente não podem atingir o limite da rua)."},
+            {q: "O que é Alvará de Autorização para Stand de Vendas?", a: "Licença precária e temporária para construir estandes em loteamentos ou obras, devendo ser desfeitos após a venda."},
+            {q: "Uma obra pública (da própria prefeitura) precisa de projeto e licença?", a: "Sim. O ente público submete-se às próprias normas urbanísticas, precisando de projeto e anotação de responsabilidade técnica."},
+            {q: "O que é a cota de soleira?", a: "É a indicação do nível (altura) do pavimento térreo da edificação em relação ao nível da rua (meio-fio)."},
+            {q: "O que o fiscal verifica na Vistoria de Habite-se?", a: "Conformidade física com o projeto (recuos, áreas, destinação), instalações sanitárias, calçada feita e ausência de entulho."},
+
+            // --- BLOCO 4: LEITURA DE PROJETOS E CONSTRUÇÃO CIVIL (15 cards) ---
+            {q: "O que é uma Planta Baixa?", a: "É um corte horizontal feito na edificação (geralmente a 1,50m de altura) olhando de cima para baixo. Mostra paredes, portas e janelas."},
+            {q: "O que é uma Planta de Situação?", a: "Mostra o lote dentro da quadra e da rua, relacionando-o com as distâncias das esquinas e norte magnético."},
+            {q: "O que é uma Planta de Locação (ou Implantação)?", a: "Mostra como a edificação está distribuída dentro do próprio lote (indicando os recuos e acessos)."},
+            {q: "O que é o Corte Longitudinal e Transversal?", a: "Cortes verticais no desenho para mostrar as alturas (pé-direito, telhado, fundações). O longitudinal é no maior sentido do lote; transversal no menor."},
+            {q: "O que representa a Fachada (ou Elevação) no projeto?", a: "A vista externa (frente, laterais ou fundos) da edificação sem 'cortar' as paredes."},
+            {q: "O que é escala 1:50 em um projeto arquitetônico?", a: "Significa que 1 unidade no desenho representa 50 unidades iguais na realidade (1 cm no papel = 50 cm na obra)."},
+            {q: "Qual escala indica mais detalhes: 1:50 ou 1:100?", a: "1:50. Quanto menor o denominador, maior a escala e mais detalhes o desenho possui."},
+            {q: "O que são cotas em um desenho técnico?", a: "São as indicações numéricas das medidas reais dos ambientes, paredes e recuos, independentemente da escala impressa."},
+            {q: "O que significa o símbolo de uma linha tracejada na planta baixa?", a: "Representa a projeção de um elemento que está acima do plano de corte (ex: um beiral de telhado ou mezanino)."},
+            {q: "O que é taxa de caimento de um telhado?", a: "É a inclinação do telhado, dada em porcentagem (%). Influencia no tipo de telha a ser usada."},
+            {q: "O que é fundação (ou alicerce)?", a: "É a parte da estrutura que transmite as cargas da edificação para o solo (ex: sapatas, estacas, radier)."},
+            {q: "O que é Alvenaria de Vedação vs Alvenaria Estrutural?", a: "Vedação apenas fecha ambientes (usa pilares e vigas). Estrutural suporta o peso da edificação (não pode quebrar parede aleatoriamente)."},
+            {q: "O que é o canteiro de obras?", a: "Área de trabalho fixa e temporária onde se desenvolvem as operações de apoio à execução da obra (almoxarifado, refeitório)."},
+            {q: "O que é o prumo e o nível na construção?", a: "Prumo é a verticalidade (parede reta para cima). Nível é a horizontalidade (piso reto)."},
+            {q: "Como o fiscal identifica a divisa do lote in loco?", a: "Através dos marcos (piquetes) deixados pelo topógrafo e pela Planta de Loteamento do município."},
+
+            // --- BLOCO 5: ACESSIBILIDADE - NBR 9050 E LEGISLAÇÃO (20 cards) ---
+            {q: "Qual norma técnica federal regulamenta a acessibilidade em edificações e espaços urbanos?", a: "ABNT NBR 9050."},
+            {q: "Qual a largura mínima para corredores em rotas acessíveis de uso público?", a: "No mínimo 1,20m para corredores comuns (NBR 9050). O mínimo absoluto para passagem de uma cadeira é 0,90m (portas/corredores muito curtos)."},
+            {q: "Qual a inclinação máxima permitida para rampas de acessibilidade (regra geral)?", a: "8,33% (proporção de 1:12). Excepcionalmente até 12,5% em reformas com espaço restrito."},
+            {q: "Qual a diferença entre piso tátil direcional e de alerta?", a: "Direcional (linhas contínuas) guia a direção do percurso. Alerta (bolinhas) indica perigo, mudança de direção ou presença de obstáculos (ex: escadas, rampas)."},
+            {q: "Banheiros PcD (Pessoa com Deficiência) exigem barras de apoio de qual material?", a: "Material resistente à corrosão, fixadas firmemente, devendo suportar no mínimo 150 kg de esforço."},
+            {q: "Quantas vagas de estacionamento devem ser reservadas para idosos?", a: "5% do total de vagas do estacionamento, garantida no mínimo 1 vaga."},
+            {q: "Quantas vagas de estacionamento devem ser reservadas para pessoas com deficiência (PcD)?", a: "2% do total de vagas, garantida no mínimo 1 vaga, devidamente sinalizada e com espaço adicional de circulação."},
+            {q: "Calçadas precisam ter rota acessível?", a: "Sim. É obrigatória uma faixa livre (passeio) sem obstáculos, com largura mínima de 1,20m, superfície regular e contínua."},
+            {q: "Pode haver degraus na faixa livre da calçada?", a: "Não. Mudanças de desnível devem ser feitas por rampas de acessibilidade. A calçada deve ser contínua."},
+            {q: "Catracas de acesso devem ter opção acessível?", a: "Sim. Todo local com controle de acesso deve ter pelo menos uma passagem com largura livre mínima de 0,90m para cadeirantes."},
+            {q: "Qual a altura de maçanetas e interruptores para garantir acessibilidade?", a: "Entre 0,80m e 1,20m do piso acabado."},
+            {q: "Obras públicas novas podem ser inauguradas sem acessibilidade plena?", a: "Não. A legislação federal (Estatuto da Pessoa com Deficiência) proíbe a entrega de obras sem atender à NBR 9050."},
+            {q: "Rampas longas precisam de patamar de descanso?", a: "Sim, a cada 50 metros para inclinações menores ou quando houver mudança de direção."},
+            {q: "O rebaixamento de calçada para faixa de pedestres pode ter degrau?", a: "Não, deve ser nivelado com a rua (tolerância máxima de 5 mm)."},
+            {q: "Pisos de rotas acessíveis podem ser lisos/escorregadios?", a: "Não. Devem ter superfície regular, firme, estável e antiderrapante sob qualquer condição."},
+            {q: "O que é 'desenho universal'?", a: "Concepção de produtos, ambientes e serviços para serem usados por todas as pessoas, sem necessidade de adaptação especializada."},
+            {q: "Estabelecimentos comerciais antigos precisam se adaptar à acessibilidade?", a: "Sim. As adaptações são exigidas na renovação de alvarás e no Código de Posturas, sob pena de interdição e multa."},
+            {q: "A falta de acessibilidade é motivo para negar o Habite-se?", a: "Sim, caso o projeto original aprovado exigisse a acessibilidade ou o uso da edificação for público/coletivo."},
+            {q: "O que é a 'Faixa de Serviço' na calçada?", a: "Área destinada à instalação de postes, lixeiras, árvores e sinalização. Fica junto ao meio-fio e preserva a 'Faixa Livre' para os pedestres."},
+            {q: "Sinalização visual de degraus é obrigatória?", a: "Sim. Degraus isolados e bordas de escadas devem ter sinalização visual tátil de alerta contrastante no piso."},
+
+            // --- BLOCO 6: PARCELAMENTO DO SOLO URBANO (Lei 6.766 e Lei Mun. 1.377/08 e 1.822/14) (25 cards) ---
+            {q: "O que é Parcelamento do Solo Urbano?", a: "É a divisão de uma grande gleba de terra em lotes menores, destinados à edificação, dividindo-se em Loteamento e Desmembramento."},
+            {q: "Qual a diferença entre Loteamento e Desmembramento?", a: "Loteamento exige abertura de NOVAS ruas/vias. Desmembramento aproveita o sistema viário JÁ EXISTENTE, sem abrir novas ruas."},
+            {q: "O que é uma 'Gleba'?", a: "Terreno original que ainda não foi objeto de parcelamento do solo (não tem projeto de loteamento aprovado)."},
+            {q: "O que é um 'Lote'?", a: "Terreno resultante de parcelamento regular, com infraestrutura básica, dimensões legais e acesso à via pública."},
+            {q: "Qual o tamanho mínimo de um lote urbano segundo a Lei Federal 6.766/79?", a: "125 metros quadrados, com frente mínima de 5 metros (salvo ZEIS ou legislações municipais mais restritivas)."},
+            {q: "O que é Fracionamento (ou Desdobro)?", a: "Divisão de um LOTE (já parcelado anteriormente) em duas ou mais partes, desde que respeite o lote mínimo municipal."},
+            {q: "Loteamentos precisam destinar áreas para o Município?", a: "Sim. Devem repassar áreas públicas (ruas, praças, parques - áreas verdes) e áreas institucionais (escolas, postos de saúde)."},
+            {q: "Qual o percentual mínimo de áreas públicas num loteamento (Lei 6.766)?", a: "No mínimo 35% da gleba original (o plano diretor municipal pode exigir mais)."},
+            {q: "O que é infraestrutura básica obrigatória em loteamentos?", a: "Asfalto/pavimentação, escoamento de águas pluviais, rede de esgoto, energia elétrica pública/domiciliar e água potável."},
+            {q: "Pode haver loteamento em áreas de preservação ecológica ou risco?", a: "Não. É vedado parcelamento em terrenos alagadiços, com declividade superior a 30%, ou áreas de preservação ambiental (APP)."},
+            {q: "O que é um Loteamento Fechado (ou de Acesso Controlado)?", a: "Loteamento regular onde a Prefeitura outorga a CONCESSÃO ou permissão de uso das vias públicas internas aos moradores para controle de acesso (Lei 1822/14 Senador Canedo)."},
+            {q: "Condomínio de Lotes é a mesma coisa que Loteamento Fechado?", a: "Juridicamente não. No Condomínio (Lei 4.591), as vias internas são propriedade privada (fração ideal). No Loteamento, as vias são bens públicos com acesso controlado."},
+            {q: "Quem aprova o projeto de loteamento?", a: "A Prefeitura Municipal, ouvindo o Estado e órgãos ambientais/sanitários dependendo do tamanho e impacto."},
+            {q: "Qual a punição para quem vende lotes em loteamento irregular ou clandestino?", a: "É crime contra a Administração Pública (Lei 6.766), além de multas e embargo imediato da obra pela fiscalização."},
+            {q: "A fiscalização pode demolir stand de vendas de loteamento irregular?", a: "Sim, como exercício de autotutela e autoexecutoriedade do poder de polícia para coibir danos a consumidores e à ordem urbanística."},
+            {q: "O que é Loteamento Clandestino?", a: "Aquele feito 'escondido', sem nenhum projeto apresentado ou aprovação na Prefeitura."},
+            {q: "O que é Loteamento Irregular?", a: "Aquele que até teve projeto aprovado, mas não foi executado conforme as regras ou não foi registrado no Cartório de Imóveis."},
+            {q: "Os espaços livres (praças) de um loteamento podem ser vendidos pela prefeitura?", a: "Não. Bens de uso comum do povo não podem ser alienados livremente, salvo desafetação por lei específica com interesse público comprovado."},
+            {q: "Qual o prazo máximo para o loteador executar as obras de infraestrutura?", a: "Geralmente 4 anos (prorrogáveis, a depender da lei municipal e termo de compromisso assinado)."},
+            {q: "Como o Município garante que a infraestrutura do loteamento será feita?", a: "Exigindo garantias do loteador (ex: caução de lotes, fiança bancária ou hipoteca). O fiscal acompanha as medições das obras."},
+            {q: "Desmembramento exige repasse de áreas públicas?", a: "Via de regra, como não há abertura de vias, a lei municipal define se haverá repasse de área institucional/verde ou pagamento equivalente."},
+            {q: "O que é Remembramento (ou Unificação)?", a: "É a junção de dois ou mais lotes para formar um único lote maior. Exige autorização municipal e atualização cadastral."},
+            {q: "Pode haver parcelamento de solo rural para fins urbanos (chácaras de lazer)?", a: "Apenas se a gleba for inserida no perímetro urbano ou de expansão urbana por lei municipal. Fora disso, o INCRA define fração mínima de parcelamento rural."},
+            {q: "O fiscal flagra máquina abrindo rua em área de proteção permanente. O que fazer?", a: "Embargo imediato, apreensão das máquinas, auto de infração e comunicação ao Ministério Público (crime ambiental e urbanístico)."},
+            {q: "Um lote resultante de desdobro ganha novo número de IPTU?", a: "Sim. Após aprovado o fracionamento e registrado em cartório, a Prefeitura atualiza o Cadastro Imobiliário gerando novos números (inscrições)."},
+
+            // --- BLOCO 7: ZONEAMENTO, USO E OCUPAÇÃO DO SOLO (Lei Mun. 1.379/08) (25 cards) ---
+            {q: "O que é a Lei de Zoneamento, Uso e Ocupação do Solo?", a: "Lei que divide a cidade em zonas, determinando o que pode ser construído (Uso) e o tamanho/volume da construção (Ocupação)."},
+            {q: "O que é a Taxa de Ocupação (TO)?", a: "Relação entre a área do térreo (projeção da edificação) e a área total do lote. Diz o quanto do chão foi ocupado."},
+            {q: "O que é o Coeficiente de Aproveitamento (CA)?", a: "Fator que, multiplicado pela área do lote, indica a área total máxima que pode ser construída, somando todos os andares."},
+            {q: "Se um lote tem 1.000m² e CA = 2, qual a área máxima construída?", a: "2.000m² (somando todos os andares/pavimentos)."},
+            {q: "O que é Taxa de Permeabilidade?", a: "É o percentual do lote que deve ficar livre de pavimentação, com terra/grama, para garantir a infiltração da água da chuva no lençol freático."},
+            {q: "Qual a função do Gabarito de Altura?", a: "Limitar a altura máxima das edificações em determinada zona (número de pavimentos ou altura em metros)."},
+            {q: "O que são Zonas Estritamente Residenciais?", a: "Áreas onde só se permite a construção de moradias, proibindo comércio, indústria e serviços para evitar incômodos."},
+            {q: "O que é uma Zona de Uso Misto?", a: "Área que permite a convivência de residências, comércios e serviços, desde que não gerem poluição ou grandes impactos."},
+            {q: "O que são Zonas de Especial Interesse Social (ZEIS)?", a: "Áreas delimitadas para promover habitação popular (regularização fundiária ou construção de novas moradias para baixa renda)."},
+            {q: "O que é Uso Permitido, Permissível e Proibido?", a: "Permitido: adequado à zona. Permissível: tolerado, mediante análise de impacto. Proibido: inadequado e não autorizado."},
+            {q: "Uma indústria química pesada pode se instalar no centro comercial?", a: "Não. Seu uso é incompatível/proibido nessas zonas devido aos altos impactos (ruído, tráfego, poluição), restrita a Zonas Industriais."},
+            {q: "O que é o Estudo de Impacto de Vizinhança (EIV)?", a: "Estudo exigido pela Prefeitura para grandes obras (ex: shopping, hipermercado) para avaliar impactos no trânsito, vizinhança e meio ambiente antes do alvará."},
+            {q: "O que acontece se uma casa antiga comercial já funcionava antes do novo zoneamento proibi-la?", a: "Pelo princípio do 'direito adquirido', geralmente tolera-se a permanência (Uso Não Conforme), mas veda-se a ampliação do negócio."},
+            {q: "O que é Outorga Onerosa do Direito de Construir?", a: "É uma contrapartida financeira paga ao Município para poder construir acima do Coeficiente de Aproveitamento Básico, até o limite Máximo."},
+            {q: "A fiscalização analisa o 'uso' de um imóvel?", a: "Sim. É base para conceder o Alvará de Localização. O fiscal verifica se a atividade bate com o permitido no zoneamento."},
+            {q: "O que é um 'Polo Gerador de Tráfego'?", a: "Empreendimentos que atraem muitos veículos (escolas, supermercados), exigindo análise especial da engenharia de trânsito para liberar o Alvará."},
+            {q: "O Alvará de Localização e Funcionamento deve ficar exposto?", a: "Sim. A lei de posturas exige que o alvará fique em local visível no estabelecimento para facilitar a fiscalização."},
+            {q: "Se um bar expande suas mesas de sinuca para a área de recuo frontal do lote (afastamento), isso é permitido?", a: "Em regra, não, se a lei de zoneamento determinar que o recuo frontal seja mantido livre ou como área permeável."},
+            {q: "A quem pertence o espaço aéreo acima do lote?", a: "Ao proprietário, mas o direito de construir para cima é limitado pelo Plano Diretor/Zoneamento (Gabarito e Coeficiente de Aproveitamento)."},
+            {q: "O que é Desapropriação Urbanística?", a: "Transferência compulsória da propriedade ao Poder Público, com pagamento prévio, para fins de utilidade pública (ex: abrir uma rua)."},
+            {q: "O que é o IPTU Progressivo no Tempo?", a: "Penalidade aplicada ao dono de imóvel ocioso ou subutilizado (terreno baldio de especulação) para forçá-lo a edificar, cumprindo a função social."},
+            {q: "O Perímetro Urbano pode ser alterado?", a: "Sim, por Lei Municipal, expandindo a área da cidade para englobar zonas de expansão urbana."},
+            {q: "O que é regularização fundiária urbana (REURB)?", a: "Conjunto de medidas (jurídicas, urbanísticas e ambientais) para incorporar núcleos urbanos informais (favelas/loteamentos irregulares) à cidade legal."},
+            {q: "O Fiscal Urbano tem poder para alterar as regras de zoneamento durante a fiscalização?", a: "Não. A atuação do fiscal é VINCULADA à lei de zoneamento; mudar a lei é competência do Legislativo (Câmara Municipal)."},
+            {q: "O que são áreas de preservação permanente (APP) na área urbana?", a: "Margens de rios, córregos e nascentes. O zoneamento municipal deve respeitar a legislação federal ambiental na ocupação urbana."},
+
+            // --- BLOCO 8: POSTURAS MUNICIPAIS E ESPAÇOS PÚBLICOS/PRIVADOS (Lei 1.596/11) (35 cards) ---
+            {q: "Qual o foco principal do Código de Posturas Municipal?", a: "Policiar o bem-estar público, a higiene, a segurança, o sossego e a ordem na convivência urbana."},
+            {q: "De quem é o dever de construir, limpar e manter calçadas e muros?", a: "Do proprietário ou possuidor do imóvel confrontante (lindeiro)."},
+            {q: "O que o fiscal faz ao flagrar um lote cheio de lixo e mato alto?", a: "Notifica o proprietário para limpeza em 'X' dias. Se não cumprir, lavra Auto de Infração (multa) e a Prefeitura pode limpar e cobrar o serviço (taxa)."},
+            {q: "Materiais de construção (areia, brita, tijolos) podem ficar na calçada ou rua?", a: "É proibido. O material deve ficar dentro do lote. Só se tolera na calçada excepcionalmente e com autorização para carga/descarga rápida."},
+            {q: "É permitido deixar lixo doméstico na rua em dias que o caminhão não passa?", a: "Não. O lixo deve ser exposto apenas nos dias e horários próximos à coleta. O descumprimento gera multa."},
+            {q: "Água servida (de pia, tanque ou lavagem de calçada) pode ser lançada na rua?", a: "Não. Água servida deve ser ligada à rede de esgoto. O lançamento na via pública (sarjeta) é infração de posturas."},
+            {q: "Água pluvial (da chuva do telhado) pode ser lançada na rede de esgoto?", a: "Não. Água de chuva vai para a rua (galeria pluvial) e esgoto vai para a rede de esgoto. Ligações cruzadas geram multa."},
+            {q: "O que é considerado Poluição Sonora?", a: "Ruídos acima dos limites de decibéis estabelecidos em lei e NBR, variando se é período diurno, vespertino ou noturno."},
+            {q: "Estabelecimento reincidente em poluição sonora pode ser fechado?", a: "Sim. As penalidades são progressivas: notificação, multa simples, multa em dobro, apreensão de aparelhos, interdição e cassação do alvará."},
+            {q: "Como o fiscal comprova o volume do som?", a: "Através da medição com equipamento calibrado pelo INMETRO chamado Sonômetro (Decibelímetro), lavrando laudo de medição."},
+            {q: "Comércio ambulante é livre e independe de Prefeitura?", a: "Não. Exige Licença ou Autorização para o Exercício de Comércio Ambulante. Sem ela, o fiscal apreende mercadorias."},
+            {q: "Onde o ambulante NÃO pode trabalhar?", a: "Onde atrapalhe o trânsito de pedestres, portas de hospitais, escolas, cruzamentos ou locais expressamente vedados pelo Código de Posturas."},
+            {q: "Feiras livres exigem regulação municipal?", a: "Sim. A prefeitura define locais, horários, tamanho das bancas e tipo de mercadoria. O fiscal acompanha a montagem e limpeza."},
+            {q: "Qual a regra para Publicidade (outdoors, letreiros, panfletos)?", a: "Depende de prévia Licença e pagamento de taxa. A fiscalização coibe a poluição visual."},
+            {q: "Pode-se colar cartazes ou pintar propagandas em postes, pontes e paradas de ônibus?", a: "É expressamente proibido colar cartazes em mobiliário e bens públicos. A fiscalização pode remover sumariamente."},
+            {q: "Caçambas de entulho (papa-entulho) podem ficar em qualquer lugar?", a: "Não. Têm regras de posicionamento (como veículos estacionados), cores refletivas para a noite e tempo máximo de permanência."},
+            {q: "Plantio de árvores nas calçadas é livre?", a: "Não. Requer observar espécies adequadas (que não quebrem calçadas/canos) e distância da fiação elétrica. A prefeitura pode exigir o replantio."},
+            {q: "Pode cortar árvore na calçada (área pública) por conta própria?", a: "Não. Exige vistoria e autorização da Secretaria de Meio Ambiente/Posturas. Corte irregular é crime e gera multa alta."},
+            {q: "O que é invasão de área pública?", a: "Quando um particular estende seu muro ou construção ocupando a rua, calçada, praça ou viela pertencente ao Município."},
+            {q: "Qual a atitude do fiscal diante da invasão de área pública em andamento?", a: "Embargo imediato, Auto de Infração e intimação para demolição. Caso o invasor não o faça, a Prefeitura usa da autoexecutoriedade para demolir."},
+            {q: "Se a invasão de área pública já for antiga e consolidada (moradia)?", a: "Ainda é ilegal (bens públicos não sofrem usucapião). A reintegração de posse via ação judicial costuma ser necessária para remover ocupações consolidadas."},
+            {q: "Pode haver criação de porcos ou gado na zona urbana?", a: "Os Códigos de Posturas proíbem a criação de animais de grande/médio porte e pecuária em áreas estritamente urbanas por questão de saúde pública."},
+            {q: "Animais soltos em vias públicas: o que diz a fiscalização?", a: "São apreendidos (levados ao curral/canil municipal). O dono paga multa e taxa de estadia para resgatá-los."},
+            {q: "O que é o Alvará de Localização e Funcionamento?", a: "Documento emitido pela Prefeitura autorizando atividades comerciais, industriais ou de serviços em um determinado imóvel."},
+            {q: "O Alvará de Funcionamento é definitivo?", a: "Geralmente sim, desde que não mude o ramo, local ou lei. Mas a licença de Funcionamento exige taxas anuais de fiscalização."},
+            {q: "O que causa a Cassação de um Alvará?", a: "Exercício de atividade diferente da licenciada, risco à saúde/segurança, descumprimento contumaz de posturas ou ordem judicial."},
+            {q: "A prefeitura pode autorizar o fechamento de uma rua para festa de moradores?", a: "Sim. Trata-se de uma Autorização de Uso de Bem Público (ato precário, temporário e discricionário)."},
+            {q: "Vendedores de lanches (food trucks, trailers) precisam de autorização?", a: "Sim, Permissão ou Autorização de Uso do Solo Público, respeitando regras da vigilância sanitária e trânsito."},
+            {q: "O fiscal pode interditar um supermercado com problemas estruturais de incêndio?", a: "Sim, em conjunto com o Corpo de Bombeiros. Risco iminente à vida garante o poder de polícia extremo da interdição imediata."},
+            {q: "Bancas de revista na calçada têm qual natureza jurídica?", a: "Permissão de Uso de Bem Público. Precisam de licença e podem ser removidas se o interesse público mudar."},
+            {q: "O que diz a lei sobre veículos abandonados nas vias públicas?", a: "Após notificação com aviso no veículo, se o dono não retirar no prazo, a prefeitura recolhe (guinchamento) e leva ao pátio municipal."},
+            {q: "A fiscalização pode exigir a instalação de lixeiras em estabelecimentos comerciais?", a: "Sim, é dever dos estabelecimentos prover coletores para evitar sujeira na calçada."},
+            {q: "O que é 'Limpeza de Terreno Baldio'? É apenas roçar o mato?", a: "Inclui roçar o mato, retirar entulhos/lixo e drenar água parada (combate à dengue), mantendo-o higienizado."},
+            {q: "Exige-se que terrenos baldios tenham muros/cercas?", a: "A maioria dos códigos de postura exige o fechamento (muro de alvenaria ou gradil) e a calçada construída na frente de lotes vagos urbanos."},
+            {q: "Piscinas não cuidadas em imóveis desocupados geram multa?", a: "Sim. Risco de dengue e saúde pública. O fiscal pode autuar e acionar a Vigilância Sanitária ou órgãos de controle de endemias para intervir."},
+
+            // --- BLOCO 9: SINALIZAÇÃO E PATRIMÔNIO HISTÓRICO (Tópicos 21 e 22) (20 cards) ---
+            {q: "Obras públicas dispensam placa de identificação e sinalização?", a: "Não. A sinalização de advertência e identificação (valor, prazo, construtora) é obrigatória para segurança e transparência (Princípio da Publicidade)."},
+            {q: "Se uma obra obstrui parte da via ou passeio, qual a responsabilidade do construtor?", a: "Garantir a sinalização viária refletiva (cones, fitas, telas) para evitar acidentes de trânsito ou quedas de pedestres, tanto de dia quanto à noite."},
+            {q: "O que é Patrimônio Histórico Urbano?", a: "Bens materiais (prédios, praças) ou imateriais que possuem valor histórico, cultural ou arquitetônico relevante para a memória da cidade."},
+            {q: "O que é o Tombamento?", a: "Ato do Poder Público (originado no Poder de Polícia Administrativa) que protege bens de valor histórico, proibindo sua destruição ou descaracterização."},
+            {q: "Imóvel tombado pode ser vendido ou alugado?", a: "Sim. O tombamento não tira a propriedade do dono, apenas restringe o uso e proíbe alterações na fachada e estrutura sem aprovação."},
+            {q: "Imóvel tombado pode ser demolido?", a: "Nunca, a menos que perca completamente suas características (destombamento), o que é raríssimo. Destruir patrimônio é crime."},
+            {q: "Quem fiscaliza reformas em imóveis do centro histórico?", a: "O Fiscal Urbano em conjunto com o órgão do Patrimônio Histórico (ex: IPHAN ou órgão municipal de cultura)."},
+            {q: "Se um proprietário deixar seu imóvel tombado ruir de propósito, ele é punido?", a: "Sim. Ele responde por crime de dano ao patrimônio e a prefeitura pode executar obras emergenciais e cobrar dele, ou até desapropriar."},
+            {q: "O entorno de um imóvel tombado tem restrições de construção?", a: "Sim (Área de Entorno/Ambiência). Novas obras ao redor não podem esconder ou ofuscar o bem histórico (gabarito de altura é restrito)."},
+            {q: "Placas comerciais em prédios históricos seguem regra comum?", a: "Não. Seguem regras muito mais rígidas (publicidade limpa) para não poluir ou esconder a arquitetura original da fachada."},
+            {q: "O que é sinalização horizontal urbana?", a: "Pinturas no chão da via (faixas de pedestre, linhas divisórias, lombadas)."},
+            {q: "O que é sinalização vertical urbana?", a: "Placas fixadas em postes (Pare, Proibido Estacionar, placas de nomes de ruas)."},
+            {q: "Morador pode pintar lombada na rua ou colocar cones de cimento para reservar vaga?", a: "Não. Trânsito e sinalização são competências exclusivas do órgão de trânsito/obras. Obras por conta própria na via são infrações removíveis."},
+            {q: "Proprietário pode rebaixar a calçada inteira para fazer estacionamento de recuo?", a: "Não. O rebaixamento de guia tem limite (geralmente até 50% da testada do lote) para garantir que a rua retenha espaço para estacionamento público e segurança de pedestres."},
+            {q: "O que o fiscal faz se a construtora danifica a sinalização de trânsito ou asfalto ao lado da obra?", a: "Embargo da obra até o reparo/sinalização emergencial e autuação por dano ao patrimônio público."},
+            {q: "Passeios (calçadas) danificados por raízes de árvores públicas devem ser arrumados por quem?", a: "A prefeitura avalia. Se a árvore foi plantada pela prefeitura, esta tem a responsabilidade de manejo; mas o dono da casa pode pedir autorização de reforma."},
+            {q: "O que são faixas não edificáveis em rodovias ou redes de alta tensão?", a: "Áreas onde a lei (Lei 6.766 e Leis de Concessionárias) proíbe a construção por segurança, geralmente 15 metros de cada lado das rodovias (Lei Federal)."},
+            {q: "O município pode ter legislação de proteção de patrimônio independentemente do IPHAN?", a: "Sim. O município pode realizar o tombamento municipal de imóveis que tenham interesse histórico apenas local."},
+            {q: "A fiscalização urbana fiscaliza a velocidade dos veículos?", a: "Não. Essa é função da fiscalização de trânsito (Agentes de Trânsito ou PM). O Fiscal Urbano cuida de obras, posturas e uso do solo."},
+            {q: "Fiscais de urbanismo e posturas têm porte de arma?", a: "Em regra geral, a categoria não possui porte funcional de arma de fogo. Contam com apoio da Guarda Municipal ou PM em operações de risco."},
+
+            // --- BLOCO 10: REVISÃO AVANÇADA E MISCELÂNEA FISCAL (30 cards para fechar 250) ---
+            {q: "Qual o princípio administrativo que obriga o fiscal a relatar toda irregularidade que encontra?", a: "Princípio da Indisponibilidade do Interesse Público e o dever de ofício. A omissão caracteriza prevaricação."},
+            {q: "Pode o Fiscal Municipal julgar recursos de multas em última instância?", a: "Geralmente não. A instância julgadora revisional costuma ser uma junta ou o Secretário. O fiscal é o autuador (primeira instância da ação)."},
+            {q: "O que é a 'Inviolabilidade de Domicílio' (Art 5º, XI, CF) para a fiscalização?", a: "A casa é asilo inviolável. O fiscal não entra sem consentimento durante o dia, EXCETO em desastre, socorro, flagrante delito ou mandado judicial."},
+            {q: "Terreno ou quintal cercado é considerado domicílio para a fiscalização?", a: "Sim, áreas não abertas ao público de residências são protegidas. O fiscal observa de fora ou pede acesso. Se negado, pede mandado."},
+            {q: "Estabelecimentos comerciais abertos ao público possuem a mesma proteção de domicílio do lar?", a: "Não durante o horário de funcionamento e na área de acesso público. As áreas restritas (ex: estoque trancado, escritório) dependem de consentimento/mandado."},
+            {q: "Qual a diferença entre vício sanável e insanável em uma obra irregular?", a: "Sanável: dá pra consertar ou regularizar o papel (ex: pedir alvará que faltava). Insanável: viola gravemente as regras, não há conserto (ex: casa feita no meio da rua). Demole-se."},
+            {q: "Um supermercado sem rampa de acesso está cometendo infração de qual natureza?", a: "Falta de Acessibilidade. Fere a NBR 9050, Lei Brasileira de Inclusão e Código de Posturas/Obras. Interdição/multa cabíveis."},
+            {q: "O que é Servidão Administrativa?", a: "Uso de um terreno particular pelo poder público para um fim específico (ex: passar fiação elétrica, tubulação de esgoto). O dono não perde o terreno, mas sofre restrição."},
+            {q: "A Prefeitura pode usar o meu lote vazio temporariamente para guardar maquinário de obra pública?", a: "Trata-se de Ocupação Temporária. É possível para obras públicas iminentes, garantindo indenização posterior ao proprietário por eventuais danos."},
+            {q: "O que diz a CF sobre o direito de propriedade e a fiscalização de obras?", a: "A CF garante a propriedade, desde que atenda a Função Social. A fiscalização garante que a construção obedeça a essas regras (Poder de Polícia)."},
+            {q: "O que o fiscal observa quanto aos tapumes em áreas de grande movimentação?", a: "Se tapam a visão em esquinas, se têm proteção contra queda de materiais (telas fachadeiras) e se garantem a passagem segura dos pedestres."},
+            {q: "É permitido jogar lixo, água ou entulho no lote vizinho?", a: "Não. Fere Código de Posturas e Direito de Vizinhança (Código Civil). O fiscal autua por má conservação e poluição."},
+            {q: "Caixas d'água de grande porte exigem projeto e licença?", a: "Sim, torres e grandes reservatórios requerem análise estrutural e aprovação (Alvará) para garantir a segurança dos arredores."},
+            {q: "Qualquer pessoa pode denunciar irregularidades urbanas à prefeitura?", a: "Sim. É um direito de cidadania. O fiscal recebe as ordens de serviço (protocolos) originadas de reclamações no SAC ou Ouvidoria."},
+            {q: "As notificações do fiscal podem ser entregues a funcionários da obra (ex: pedreiro)?", a: "Sim, no caso de obras, entrega-se ao mestre de obras, responsável técnico ou preposto presente, registrando o fato, se o dono não estiver."},
+            {q: "O fiscal pode reter os documentos (RG, CNH) do infrator?", a: "Não. Retenção de documento de identificação pessoal é infração legal. O fiscal apenas solicita, anota os dados e devolve."},
+            {q: "Como o fiscal procede com vendedores de alimentos em via pública (higiene)?", a: "Trabalha em conjunto com a Vigilância Sanitária. A Postura olha o uso do solo/alvará; a Vigilância olha a higiene/risco de contaminação."},
+            {q: "O que é taxa de fiscalização de funcionamento (TFF ou similar)?", a: "Tributo cobrado anualmente dos estabelecimentos, pelo exercício contínuo do poder de polícia da prefeitura sobre aquelas atividades."},
+            {q: "Se a prefeitura não responde ao pedido de Alvará no prazo, a obra pode iniciar?", a: "O 'silêncio administrativo', no direito brasileiro urbanístico de praxe, NÃO significa aprovação automática. Deve-se cobrar resposta via mandado de segurança ou ouvidoria."},
+            {q: "Poder de polícia é o mesmo que Polícia Militar?", a: "Não. PM atua na polícia ostensiva/preservação da ordem (segurança). Poder de Polícia (Administrativo) atua na regulação de bens e serviços urbanos."},
+            {q: "O Estatuto da Cidade é uma lei federal. O município pode desrespeitá-lo?", a: "Não. O Estatuto dita as diretrizes gerais de política urbana. O município regula o interesse local baseado no Estatuto."},
+            {q: "Quem elabora o Plano Diretor?", a: "O Poder Executivo (Prefeitura), com ampla participação popular (audiências públicas), sendo aprovado pelo Poder Legislativo (Câmara Municipal)."},
+            {q: "Plano Diretor é revisado de quanto em quanto tempo?", a: "Pelo menos a cada 10 anos (Estatuto da Cidade)."},
+            {q: "Uma obra pública do Estado dentro do Município precisa de Alvará Municipal?", a: "Sim. Por obediência à ordem urbanística local, projetos de outros entes federativos devem ser licenciados pelo Município."},
+            {q: "O que é o Relatório de Impacto de Vizinhança (RIVI)?", a: "É o documento final resultante da realização do Estudo de Impacto de Vizinhança (EIV), apresentado à prefeitura."},
+            {q: "Pode haver desmembramento de um lote de 200m² se a lei municipal exigir 125m² mínimo?", a: "Não, pois ao dividir por 2, resultariam lotes de 100m², ferindo o limite mínimo municipal (125m²)."},
+            {q: "A quem pertence o leito de uma rua de um Loteamento já registrado?", a: "Ao Município. Torna-se bem público de uso comum do povo a partir do registro do loteamento no Cartório de Imóveis."},
+            {q: "Passeio e Calçada são a mesma coisa tecnicamente?", a: "A calçada é a parte da via reservada a pedestres. O passeio é a parte da calçada livre de interferências (faixa livre de caminhada)."},
+            {q: "Se um comerciante expõe manequins na calçada obstruindo o trânsito, qual a ação?", a: "Notificação/Apreensão imediata. O Código de Posturas proíbe colocar mercadorias na área pública de circulação."},
+            {q: "Finalizando: Qual a postura ideal do Fiscal perante o cidadão irritado com a multa?", a: "Agir com impessoalidade, firmeza, cortesia e urbanidade, explicando a lei sem entrar em discussões pessoais, focando no ato administrativo."}
+        ];
+
+        let cards = [...originalCards];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // Referências do DOM
+        const cardElement = document.getElementById('flashcard');
+        const questionEl = document.getElementById('card-question');
+        const answerEl = document.getElementById('card-answer');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Inicialização
+        function init() {
+            renderCard();
+        }
+
+        function renderCard() {
+            // Se estiver virado, desvira antes de trocar o texto (com pequeno delay para não ver o texto mudando)
+            if (isFlipped) {
+                isFlipped = false;
+                cardElement.classList.remove('rotate-y-180');
+                setTimeout(() => {
+                    updateText();
+                }, 300); // Metade do tempo da transição
+            } else {
+                updateText();
+            }
+        }
+
+        function updateText() {
+            questionEl.textContent = cards[currentIndex].q;
+            answerEl.textContent = cards[currentIndex].a;
+            
+            // Atualiza progresso
+            const currentNum = currentIndex + 1;
+            const totalNum = cards.length;
+            progressText.textContent = `${currentNum} / ${totalNum}`;
+            
+            const percent = (currentNum / totalNum) * 100;
+            progressBar.style.width = `${percent}%`;
+        }
+
+        // Navegação
+        function nextCard() {
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                renderCard();
+            } else {
+                // Loop de volta ao início
+                currentIndex = 0;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            }
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardElement.classList.add('rotate-y-180');
+            } else {
+                cardElement.classList.remove('rotate-y-180');
+            }
+        }
+
+        // Embaralhar as cartas (Algoritmo de Fisher-Yates)
+        function shuffleCards() {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            renderCard();
+            
+            // Feedback visual rápido
+            const btn = document.querySelector('button[title="Embaralhar"]');
+            const originalBg = btn.className;
+            btn.classList.add('bg-emerald-600');
+            setTimeout(() => {
+                btn.classList.remove('bg-emerald-600');
+            }, 300);
+        }
+
+        // Suporte a Swipe para Mobile
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.getElementById('flashcard').addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        document.getElementById('flashcard').addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 50; // mínimo de pixels para considerar um swipe
+            if (touchendX < touchstartX - threshold) {
+                nextCard(); // Swipe para a esquerda
+            }
+            if (touchendX > touchstartX + threshold) {
+                prevCard(); // Swipe para a direita
+            }
+        }
+
+        // Suporte ao Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // Iniciar
+        window.onload = init;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards - Fiscal de Serviço Urbano (Banca Verbena)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para o efeito 3D do Flashcard */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+        .card-transition {
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+        }
+        
+        /* Garantir que o texto longo tenha rolagem se necessário */
+        .card-content-scroll {
+            overflow-y: auto;
+            max-height: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .card-content-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-content-scroll::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <!-- Cabeçalho -->
+    <header class="bg-indigo-600 text-white shadow-md p-4">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-bold"><i class="fas fa-layer-group mr-2"></i>Flashcards da Aprovação</h1>
+                <p class="text-indigo-200 text-sm md:text-base">Fiscal de Serviço Urbano - Foco Banca Verbena (UFG)</p>
+            </div>
+            <div class="text-right">
+                <span id="progress-text" class="font-mono bg-indigo-800 px-3 py-1 rounded-full text-sm font-semibold">1 / 50</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Área Principal -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 w-full max-w-4xl mx-auto">
+        
+        <!-- Barra de Progresso -->
+        <div class="w-full bg-slate-300 rounded-full h-2 mb-8">
+            <div id="progress-bar" class="bg-indigo-600 h-2 rounded-full transition-all duration-300" style="width: 2%;"></div>
+        </div>
+
+        <!-- Contêiner do Flashcard -->
+        <div class="relative w-full max-w-2xl h-80 md:h-96 perspective-1000 cursor-pointer group" onclick="flipCard()">
+            <div id="flashcard" class="w-full h-full absolute transform-style-3d card-transition rounded-2xl shadow-xl">
+                
+                <!-- Frente da Carta (Pergunta) -->
+                <div class="absolute w-full h-full bg-white backface-hidden rounded-2xl border-t-4 border-indigo-500 flex flex-col justify-center items-center p-8 text-center">
+                    <span class="absolute top-4 left-4 text-indigo-400 text-sm font-semibold uppercase tracking-wider"><i class="fas fa-question-circle mr-1"></i> Pergunta</span>
+                    <h2 id="card-question" class="text-xl md:text-3xl font-bold text-slate-700 leading-tight">
+                        Carregando...
+                    </h2>
+                    <p class="absolute bottom-4 text-slate-400 text-sm flex items-center gap-2">
+                        <i class="fas fa-hand-pointer"></i> Toque para ver a resposta
+                    </p>
+                </div>
+
+                <!-- Verso da Carta (Resposta) -->
+                <div class="absolute w-full h-full bg-indigo-50 backface-hidden rounded-2xl border-t-4 border-emerald-500 rotate-y-180 flex flex-col justify-center items-center p-8 text-center">
+                    <span class="absolute top-4 left-4 text-emerald-600 text-sm font-semibold uppercase tracking-wider"><i class="fas fa-check-circle mr-1"></i> Resposta</span>
+                    <div class="card-content-scroll w-full flex flex-col justify-center h-full pt-6 pb-6">
+                        <p id="card-answer" class="text-lg md:text-2xl font-medium text-slate-800 leading-relaxed">
+                            Carregando...
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Controles -->
+        <div class="flex flex-wrap justify-center gap-4 mt-8 w-full">
+            <button onclick="prevCard()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 font-bold py-3 px-6 rounded-lg shadow-sm transition-colors flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i> Anterior
+            </button>
+            <button onclick="shuffleCards()" class="bg-slate-700 hover:bg-slate-800 text-white font-bold py-3 px-6 rounded-lg shadow-sm transition-colors flex items-center" title="Embaralhar">
+                <i class="fas fa-random"></i>
+            </button>
+            <button onclick="nextCard()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors flex items-center">
+                Próximo <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-slate-800 text-slate-400 text-center p-4 text-sm mt-auto">
+        <p>Conteúdo focado no edital de Fiscal de Serviço Urbano (Banca Verbena/UFG). Dica: A banca cobra muita aplicação prática do Poder de Polícia.</p>
+    </footer>
+
+    <script>
+        // Base de Dados: 50 Flashcards focados em Fiscal de Serviço Urbano (Verbena)
+        const originalCards = [
+            // PODER DE POLÍCIA (A banca ama esse tema)
+            {q: "O que é o Poder de Polícia Administrativa?", a: "É a faculdade de o Estado condicionar e restringir o uso de bens, direitos e liberdades individuais em prol do interesse coletivo (Ex: fechar comércio irregular)."},
+            {q: "Quais são os 3 atributos principais do Poder de Polícia?", a: "Discricionariedade, Autoexecutoriedade e Coercibilidade (Mnemônico: DAC)."},
+            {q: "O que significa a Autoexecutoriedade no Poder de Polícia?", a: "É a prerrogativa da Administração (do Fiscal) de executar suas decisões diretamente, SEM precisar de ordem do Poder Judiciário (Ex: apreensão de mercadoria estragada)."},
+            {q: "Quais são as fases do Ciclo do Poder de Polícia?", a: "1. Ordem de Polícia (a lei); 2. Consentimento (alvará); 3. Fiscalização; 4. Sanção (multa, embargo)."},
+            {q: "O Poder de Polícia originário pode ser delegado a particulares?", a: "Não. Atividades coercitivas (sanção) não podem ser delegadas a empresas privadas. Mas atos materiais/preparatórios (ex: radar tirando foto) podem."},
+            {q: "Diferença entre Licença e Autorização (Consentimento de Polícia)?", a: "Licença é ato vinculado e definitivo (ex: CNH, alvará de construção). Autorização é ato discricionário e precário (ex: fechar rua para festa)."},
+            {q: "Qual o prazo de prescrição para a Administração Pública aplicar punição (ação punitiva) no exercício do poder de polícia?", a: "O prazo geral é de 5 anos, contados da data da prática do ato ou infração."},
+
+            // ATOS ADMINISTRATIVOS
+            {q: "Quais são os 5 requisitos (elementos) do Ato Administrativo?", a: "Competência, Finalidade, Forma, Motivo e Objeto (Mnemônico: CO-FI-FO-M-OB)."},
+            {q: "Quais são os atributos do Ato Administrativo?", a: "Presunção de Legitimidade/Veracidade, Imperatividade, Autoexecutoriedade e Tipicidade (PATI)."},
+            {q: "Qual a diferença entre Anulação e Revogação?", a: "Anulação apaga um ato ILEGAL (efeito ex tunc - retroage). Revogação extingue um ato LEGAL por inoportunidade/inconveniência (efeito ex nunc - não retroage)."},
+            {q: "O que é o atributo da Imperatividade?", a: "É o poder de impor obrigações a terceiros, independentemente da concordância deles (Ex: Fiscal determinar a limpeza de um lote)."},
+            {q: "O que é Convalidação do Ato Administrativo?", a: "É a correção de um ato com defeito sanável (vício de competência ou de forma), aproveitando o ato e seus efeitos para o passado."},
+
+            // CÓDIGO DE POSTURAS (Noções Gerais cobradas pela Verbena)
+            {q: "De quem é a responsabilidade pela construção, conservação e limpeza das calçadas (passeios públicos)?", a: "Em regra, do proprietário do imóvel lindeiro (em frente à calçada). O fiscal notifica o dono para arrumar."},
+            {q: "Para o exercício do comércio ambulante, o que é exigido do vendedor?", a: "Licença/Autorização prévia do Município. Sem ela, o fiscal pode apreender as mercadorias."},
+            {q: "Em caso de apreensão de mercadorias perecíveis de um ambulante irregular, qual o destino?", a: "Geralmente, após avaliação, são doadas a instituições de caridade ou assistência social, se próprias para consumo."},
+            {q: "Qual a regra geral para publicidade (outdoors, placas) em vias públicas?", a: "Depende de prévia licença municipal e pagamento de taxa. Placas irregulares podem ser removidas sumariamente pela fiscalização."},
+            {q: "Se um terreno baldio estiver cheio de mato e lixo, qual o procedimento do Fiscal?", a: "1. Notificar o proprietário para limpar em prazo estipulado. 2. Não cumprindo, lavrar Auto de Infração (Multa)."},
+            {q: "O Fiscal precisa de Mandado Judicial para entrar em um bar e verificar o Alvará?", a: "Não. Estabelecimentos comerciais de portas abertas estão sujeitos à fiscalização sem mandado (Autoexecutoriedade/Poder de Polícia)."},
+            {q: "O que é Interdição de estabelecimento comercial?", a: "É o fechamento compulsório do local (parcial ou total) por descumprimento de normas (ex: falta de alvará, risco à saúde), aplicado pelo fiscal."},
+            {q: "A fiscalização de poluição sonora baseia-se em qual parâmetro?", a: "Limites de decibéis estabelecidos na legislação (e normas da ABNT), variando conforme o zoneamento (residencial, comercial, industrial) e horário."},
+
+            // CÓDIGO DE OBRAS E URBANISMO
+            {q: "O que é o Alvará de Construção?", a: "Documento emitido pela Prefeitura que licencia a execução da obra, atestando que o projeto cumpre o Código de Obras e o Plano Diretor."},
+            {q: "O que é o 'Habite-se' (ou Certificado de Conclusão de Obra)?", a: "Ato administrativo que atesta que a obra foi concluída de acordo com o projeto aprovado e possui condições de habitação/uso."},
+            {q: "O que o Fiscal de Obras deve fazer ao encontrar uma construção em andamento sem Alvará?", a: "Lavrar o Auto de Embargo da obra (paralisação imediata) e notificar o dono para regularizar."},
+            {q: "Qual a diferença entre Embargo e Interdição?", a: "Embargo paralisa obras em andamento. Interdição impede o uso ou ocupação de uma edificação já concluída (ou estabelecimento)."},
+            {q: "O que é Taxa de Permeabilidade?", a: "Percentual mínimo da área do terreno que deve ser deixada livre de pavimentação, permitindo a infiltração da água da chuva no solo."},
+            {q: "O que são Recuos (ou Afastamentos)?", a: "Distâncias mínimas obrigatórias entre a edificação e as divisas do terreno (frente, fundos e laterais). O fiscal afere isso in loco."},
+            {q: "A demolição de obra irregular pode ser feita administrativamente (pelo Município)?", a: "Sim, se a obra estiver em andamento ou oferecer risco iminente. Se concluída e habitada, a regra geral exige ação judicial."},
+
+            // ESTATUTO DA CIDADE (Lei 10.257/01 - Fortíssimo na Verbena)
+            {q: "Qual o princípio basilar do Estatuto da Cidade?", a: "A garantia do cumprimento da Função Social da Propriedade Urbana e da cidade."},
+            {q: "O Plano Diretor é obrigatório para quais cidades (regra principal)?", a: "Cidades com mais de 20.000 (vinte mil) habitantes."},
+            {q: "Se um terreno ocioso não cumpre sua função social, qual a primeira medida adotada pelo Município?", a: "Parcelamento, Edificação ou Utilização Compulsórios (notificação para dar uso ao terreno)."},
+            {q: "Se o proprietário ignorar a notificação de parcelamento compulsório, qual a próxima sanção (Estatuto da Cidade)?", a: "IPTU Progressivo no Tempo, mediante aumento anual da alíquota pelo prazo máximo de 5 anos."},
+            {q: "Qual o limite máximo da alíquota do IPTU Progressivo no Tempo?", a: "O limite máximo é de 15%. (Após 5 anos, se não resolver, cabe desapropriação com títulos da dívida pública)."},
+            {q: "Requisitos da Usucapião Especial Urbana (CF e Estatuto)?", a: "Área de até 250m², posse mansa, pacífica e ininterrupta por 5 anos, usada para moradia, sem possuir outro imóvel."},
+            {q: "O que é Outorga Onerosa do Direito de Construir?", a: "É o pagamento que o construtor faz ao Município para poder construir acima do coeficiente de aproveitamento básico, até o limite máximo."},
+            {q: "O que é o Direito de Preempção?", a: "É a preferência do Município para adquirir imóvel urbano objeto de alienação onerosa entre particulares (o dono tem que oferecer primeiro à Prefeitura)."},
+            {q: "O que é o Estudo de Impacto de Vizinhança (EIV)?", a: "Estudo exigido pelo Município para aprovar empreendimentos que causam impacto na região (trânsito, sombra, barulho). Executado antes de emitir alvarás."},
+            {q: "O que são Operações Urbanas Consorciadas?", a: "Intervenções coordenadas pelo Município, com participação de investidores privados e moradores, para transformação urbanística de uma área específica."},
+
+            // PROCESSO FISCAL / ADMINISTRAÇÃO PÚBLICA
+            {q: "Qual a diferença entre Notificação e Auto de Infração?", a: "A Notificação avisa o infrator e dá prazo para corrigir a irregularidade. O Auto de Infração é a aplicação formal da penalidade (multa) após o flagrante ou fim do prazo."},
+            {q: "No Processo Administrativo de multa, o infrator tem direito à ampla defesa?", a: "Sim. A Constituição garante o contraditório e a ampla defesa em processos administrativos (Art. 5º, LV)."},
+            {q: "Quais os princípios expressos da Administração Pública na CF (Art. 37)?", a: "Legalidade, Impessoalidade, Moralidade, Publicidade e Eficiência (LIMPE)."},
+            {q: "A fiscalização obedece ao Princípio da Impessoalidade. O que isso significa?", a: "Que o fiscal não pode atuar para beneficiar amigos ou prejudicar inimigos; a finalidade deve ser sempre o interesse público."},
+            {q: "O que prevê a Súmula Vinculante 13 do STF (Nepotismo)?", a: "Proíbe a nomeação de cônjuge, companheiro ou parente até o 3º grau para cargos de comissão/confiança na Administração Pública."},
+
+            // LEI DE IMPROBIDADE ADMINISTRATIVA (Lei 8.429 - com alterações da Lei 14.230/21)
+            {q: "A Lei de Improbidade Administrativa pune condutas culposas (sem intenção)?", a: "NÃO mais. A nova lei exige DOLO (vontade livre e consciente de alcançar o resultado ilícito) em todas as condutas."},
+            {q: "Quais são os 3 grupos de atos de Improbidade Administrativa?", a: "1. Enriquecimento Ilícito (Art. 9); 2. Prejuízo ao Erário (Art. 10); 3. Atentado aos Princípios da Adm. Pública (Art. 11)."},
+            {q: "Receber propina para não multar uma obra irregular configura qual ato de improbidade?", a: "Enriquecimento Ilícito (Art. 9º - auferir qualquer vantagem patrimonial indevida em razão do cargo)."},
+            {q: "Qual a punição de suspensão dos direitos políticos para Improbidade?", a: "Enriquecimento ilícito e Prejuízo ao erário: até 14 anos. Atentado contra princípios: A NOVA LEI EXCLUIU essa pena para este caso."},
+            {q: "O que é o Acordo de Não Persecução Civil na ação de improbidade?", a: "É um acordo celebrado entre o Ministério Público e o infrator, assumindo obrigações (como ressarcir o dano) para evitar o processo judicial."},
+
+            // RESPONSABILIDADE CIVIL DO ESTADO (Art. 37, § 6º da CF)
+            {q: "Qual a teoria adotada pela CF para a Responsabilidade Civil do Estado (ações de seus agentes)?", a: "Teoria do Risco Administrativo (Responsabilidade Objetiva)."},
+            {q: "O que é Responsabilidade Objetiva?", a: "É aquela em que o Estado deve indenizar a vítima comprovando apenas 3 coisas: Conduta do agente, Dano, e Nexo Causal (NÃO precisa provar culpa ou dolo do agente)."},
+            {q: "Se a viatura do fiscal de posturas bater em um carro particular por culpa exclusiva do cidadão, o Estado indeniza?", a: "Não. A Culpa Exclusiva da Vítima rompe o nexo causal e exclui a responsabilidade do Estado."},
+            {q: "O que é a Ação de Regresso?", a: "Se o Estado for condenado a indenizar um particular por um erro do Fiscal, o Estado entra com ação contra o Fiscal para cobrar o valor. Aqui, exige-se dolo ou culpa do servidor."},
+            {q: "Em casos de Omissão do Estado (ex: não limpar bueiro e a casa alagar), qual a regra geral de responsabilidade?", a: "A responsabilidade passa a ser Subjetiva (Teoria da Faute du Service ou Culpa Anônima). Deve-se provar que o Estado falhou no seu dever de agir."}
+        ];
+
+        let cards = [...originalCards];
+        let currentIndex = 0;
+        let isFlipped = false;
+
+        // Referências do DOM
+        const cardElement = document.getElementById('flashcard');
+        const questionEl = document.getElementById('card-question');
+        const answerEl = document.getElementById('card-answer');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+
+        // Inicialização
+        function init() {
+            renderCard();
+        }
+
+        function renderCard() {
+            // Se estiver virado, desvira antes de trocar o texto (com pequeno delay para não ver o texto mudando)
+            if (isFlipped) {
+                isFlipped = false;
+                cardElement.classList.remove('rotate-y-180');
+                setTimeout(() => {
+                    updateText();
+                }, 300); // Metade do tempo da transição
+            } else {
+                updateText();
+            }
+        }
+
+        function updateText() {
+            questionEl.textContent = cards[currentIndex].q;
+            answerEl.textContent = cards[currentIndex].a;
+            
+            // Atualiza progresso
+            const currentNum = currentIndex + 1;
+            const totalNum = cards.length;
+            progressText.textContent = `${currentNum} / ${totalNum}`;
+            
+            const percent = (currentNum / totalNum) * 100;
+            progressBar.style.width = `${percent}%`;
+        }
+
+        // Navegação
+        function nextCard() {
+            if (currentIndex < cards.length - 1) {
+                currentIndex++;
+                renderCard();
+            } else {
+                // Loop de volta ao início
+                currentIndex = 0;
+                renderCard();
+            }
+        }
+
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                renderCard();
+            }
+        }
+
+        function flipCard() {
+            isFlipped = !isFlipped;
+            if (isFlipped) {
+                cardElement.classList.add('rotate-y-180');
+            } else {
+                cardElement.classList.remove('rotate-y-180');
+            }
+        }
+
+        // Embaralhar as cartas (Algoritmo de Fisher-Yates)
+        function shuffleCards() {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            currentIndex = 0;
+            renderCard();
+            
+            // Feedback visual rápido
+            const btn = document.querySelector('button[title="Embaralhar"]');
+            const originalBg = btn.className;
+            btn.classList.add('bg-emerald-600');
+            setTimeout(() => {
+                btn.classList.remove('bg-emerald-600');
+            }, 300);
+        }
+
+        // Suporte a Swipe para Mobile
+        let touchstartX = 0;
+        let touchendX = 0;
+
+        document.getElementById('flashcard').addEventListener('touchstart', e => {
+            touchstartX = e.changedTouches[0].screenX;
+        });
+
+        document.getElementById('flashcard').addEventListener('touchend', e => {
+            touchendX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 50; // mínimo de pixels para considerar um swipe
+            if (touchendX < touchstartX - threshold) {
+                nextCard(); // Swipe para a esquerda
+            }
+            if (touchendX > touchstartX + threshold) {
+                prevCard(); // Swipe para a direita
+            }
+        }
+
+        // Suporte ao Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') nextCard();
+            if (e.key === 'ArrowLeft') prevCard();
+            if (e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                flipCard();
+            }
+        });
+
+        // Iniciar
+        window.onload = init;
+
+    </script>
+</body>
+</html>
